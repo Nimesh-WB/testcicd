@@ -33,7 +33,7 @@ namespace Test1CiCd.Controllers
         [HttpGet("mul/{a}/{b}")]
         public int GetDiff(int a, int b)
         {
-            return a + b;
+            return a * b;
         }
     }
 }
