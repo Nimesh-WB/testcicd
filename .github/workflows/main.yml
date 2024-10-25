@@ -1,0 +1,32 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master  # Change to your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: jnims07/demo1cicd:latest
+
+      - name: Update Kubernetes deployment
+        uses: appleboy/kubectl-action@v0.14.0
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          manifests: |
+            path/to/your/deployment.yaml
+          args: set image deployment/testcicd-deployment-1 testcicd-container-1=jnims07/demo1cicd:latest
