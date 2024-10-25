@@ -28,10 +28,12 @@ jobs:
           push: true
           tags: jnims07/demo1cicd:latest
 
-      - name: Update Kubernetes deployment
-        uses: appleboy/kubectl-action@v0.14.0
+      - name: Set up Kubernetes
+        uses: imranismail/setup-kubectl@v1
         with:
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-          manifests: |
-            path/to/your/deployment.yaml
-          args: set image deployment/testcicd-deployment-1 testcicd-container-1=jnims07/demo1cicd:latest
+          kubectl-version: 'latest' # Specify the version of kubectl you want to use
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f path/to/your/deployment.yaml
+          kubectl set image deployment/testcicd-deployment-1 testcicd-container-1=jnims07/demo1cicd:latest
