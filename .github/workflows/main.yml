@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Update version
+        run: |
+          chmod +x ./update_version.sh
+          ./update_version.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
