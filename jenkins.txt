@@ -29,19 +29,28 @@ pipeline {
             }
         }
 
-        stage('Deploy to Minikube') {
+        stage('Clean Up Kubernetes Resources') {
             steps {
                 script {
                     // Set Minikube context
                     bat 'kubectl config use-context minikube'
 
+                    // Delete existing deployment and service if they exist
+                    bat 'kubectl delete deployment wb01-deployment --ignore-not-found=true'
+                    bat 'kubectl delete service wb01-service --ignore-not-found=true'
+                }
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                script {
                     // Apply the Kubernetes deployment
                     bat 'kubectl apply -f deployment.yaml'
                 }
             }
         }
-    }
-
+    
     post {
         always {
             echo 'Cleaning up workspace...'

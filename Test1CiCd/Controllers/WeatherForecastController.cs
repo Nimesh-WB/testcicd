@@ -33,7 +33,7 @@ namespace Test1CiCd.Controllers
         [HttpGet("hello")]
         public string GetDiff()
         {
-            return "Hello Wonder Biz!!";
+            return "Hello Nimesh !!";
         }
     }
 }
