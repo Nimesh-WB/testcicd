@@ -8,40 +8,22 @@ pipeline {
             }
         }
 
-        stage('Set Version') {
-            steps {
-                script {
-                    // Read the current version from a file (version.txt) or define a new version here
-                    def currentVersion = readFile('version.txt').trim()
-                    def newVersion = currentVersion.tokenize('.').collect { it.toInteger() }
-                    newVersion[newVersion.size() - 1] += 1 // Increment the last part of the version
-                    def updatedVersion = newVersion.join('.')
-
-                    // Write the new version back to the file
-                    writeFile file: 'version.txt', text: updatedVersion
-                    echo "New version: ${updatedVersion}"
-
-                    // Set the new version as an environment variable
-                    env.NEW_VERSION = updatedVersion
-                }
-            }
-        }
-
         stage('Build and Push Docker Image') {
             steps {
                 script {
+                    // Use Docker credentials to log in
                     withCredentials([usernamePassword(credentialsId: 'manualCICD', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        // Build the Docker image with the new version
-                        bat "docker build -t wb01:${env.NEW_VERSION} ."
+                        // Build the Docker image
+                        bat 'docker build -t wb01:latest .'
 
                         // Log in to Docker Hub
                         bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
 
                         // Tagging the image properly for Docker Hub
-                        bat "docker tag wb01:${env.NEW_VERSION} %DOCKER_USERNAME%/wb01:${env.NEW_VERSION}"
+                        bat 'docker tag wb01:latest %DOCKER_USERNAME%/wb01:latest'
 
                         // Pushing the tagged image
-                        bat "docker push %DOCKER_USERNAME%/wb01:${env.NEW_VERSION}"
+                        bat 'docker push %DOCKER_USERNAME%/wb01:latest'
                     }
                 }
             }
@@ -50,8 +32,10 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 script {
+                    // Set Minikube context
                     bat 'kubectl config use-context minikube'
-                    bat "kubectl set image deployment/wb01-deployment wb01=%DOCKER_USERNAME%/wb01:${env.NEW_VERSION}"
+
+                    // Apply the Kubernetes deployment
                     bat 'kubectl apply -f deployment.yaml'
                 }
             }
