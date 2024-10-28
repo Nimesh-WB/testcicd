@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        BUILD_CONFIGURATION = 'Release' 
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -13,17 +17,20 @@ pipeline {
                 script {
                     // Use Docker credentials to log in
                     withCredentials([usernamePassword(credentialsId: 'manualCICD', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        bat 'docker build -t wb01:latest .'  // Build the Docker image with "latest" tag
+                        // Build the Docker image
+                        bat 'docker build -t wb01:latest .'
+
+                        // Log in to Docker Hub
                         bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
-                        
+
                         // Tagging the image properly for Docker Hub
                         bat 'docker tag wb01:latest %DOCKER_USERNAME%/wb01:latest'
-                        
+
                         // Pushing the tagged image
                         bat 'docker push %DOCKER_USERNAME%/wb01:latest'
 
-			// Run the docker images
-			bat 'docker run -d -p 3600:8080 push %DOCKER_USERNAME%/wb01:latest'
+                        // Run the Docker container
+                        bat 'docker run -d -p 3600:8080 %DOCKER_USERNAME%/wb01:latest'
                     }
                 }
             }
