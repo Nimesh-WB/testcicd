@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/Nimesh-WB/testcicd.git'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    // Use Docker credentials to log in
+                    withCredentials([usernamePassword(credentialsId: 'manualCICD', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        bat 'docker build -t wb01:latest .'  // Build the Docker image with "latest" tag
+                        bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
+                        
+                        // Tagging the image properly for Docker Hub
+                        bat 'docker tag wb01:latest %DOCKER_USERNAME%/wb01:latest'
+                        
+                        // Pushing the tagged image
+                        bat 'docker push %DOCKER_USERNAME%/wb01:latest'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs()
+        }
+    }
+}
