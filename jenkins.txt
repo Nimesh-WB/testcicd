@@ -24,10 +24,19 @@ pipeline {
 
                         // Pushing the tagged image
                         bat 'docker push %DOCKER_USERNAME%/wb01:latest'
-
-                        // Run the Docker container
-                        bat 'docker run -d -p 3600:8080 %DOCKER_USERNAME%/wb01:latest'
                     }
+                }
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                script {
+                    // Set Minikube context
+                    bat 'kubectl config use-context minikube'
+
+                    // Apply the Kubernetes deployment
+                    bat 'kubectl apply -f deployment.yaml'
                 }
             }
         }

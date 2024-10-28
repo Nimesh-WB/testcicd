@@ -1,35 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: testcicd-deployment-1
+  name: wb01-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: testcicd
-      version: v1
+      app: wb01
   template:
     metadata:
       labels:
-        app: testcicd
-        version: v1
+        app: wb01
     spec:
       containers:
-      - name: testcicd-container-1
-        image: jnims07/demo1cicd:latest
+      - name: wb01
+        image: jnims07/wb01:latest  
         ports:
         - containerPort: 8080
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: testcicd-service
+  name: wb01-service
 spec:
   type: NodePort
-  ports:
-  - port: 8080
-    targetPort: 8080
-    nodePort: 30002  # NodePort to access the service externally
   selector:
-    app: testcicd
+    app: wb01
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 36001
