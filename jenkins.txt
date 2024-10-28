@@ -21,6 +21,9 @@ pipeline {
                         
                         // Pushing the tagged image
                         bat 'docker push %DOCKER_USERNAME%/wb01:latest'
+
+			// Run the docker images
+			bat 'docker run -d -p 3600:8080 push %DOCKER_USERNAME%/wb01:latest'
                     }
                 }
             }
