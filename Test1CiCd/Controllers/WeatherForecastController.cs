@@ -30,10 +30,10 @@ namespace Test1CiCd.Controllers
             .ToArray();
         }
 
-        [HttpGet("add/{a}/{b}")]
-        public int GetDiff(int a, int b)
+        [HttpGet("hello")]
+        public string GetDiff()
         {
-            return a + b;
+            return "Hello World";
         }
     }
 }
