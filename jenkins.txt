@@ -26,8 +26,8 @@ pipeline {
                     
                     // Commit and push the updated VERSION.txt to GitHub
                     sh '''
-                    git config user.email "your-email@example.com"
-                    git config user.name "Jenkins"
+                    git config user.email "nimesh.jethva@wonderbiz.in"
+                    git config user.name "jnims07"
                     git add VERSION.txt
                     git commit -m "Update version to ${IMAGE_TAG}"
                     git push origin master
