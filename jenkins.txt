@@ -1,16 +1,6 @@
 pipeline {
     agent any
 
-    parameters {
-        string(name: 'ROLLBACK_VERSION', defaultValue: '', description: 'Specify version to roll back if needed')
-    }
-
-    environment {
-        IMAGE_NAME = "wb01"
-        IMAGE_TAG = "${params.ROLLBACK_VERSION ?: BUILD_NUMBER}" // Use rollback version or build number
-        DOCKER_REPO = "jnims07/wb01" // Replace with your actual Docker Hub repository
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -18,43 +8,22 @@ pipeline {
             }
         }
 
-        stage('Update Version File') {
-            steps {
-                script {
-                    // Update VERSION.txt with the current version number
-                    writeFile file: 'VERSION.txt', text: "${IMAGE_TAG}"
-                    
-                    // Use Jenkins credentials for Git push
-                    withCredentials([usernamePassword(credentialsId: 'github-pat', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        sh '''
-                        git config user.email "nimesh.jethva@wonderbiz.in"
-                        git config user.name "Nimesh-WB"
-                        git add VERSION.txt
-                        git commit -m "Update version to ${IMAGE_TAG}"
-                        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Nimesh-WB/testcicd.git
-                        git push origin master
-                        '''
-                    }
-                }
-            }
-        }
-
-
         stage('Build and Push Docker Image') {
             steps {
                 script {
+                    // Use Docker credentials to log in
                     withCredentials([usernamePassword(credentialsId: 'manualCICD', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
                         // Build the Docker image
-                        bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                        
+                        bat 'docker build -t wb01:latest .'
+
                         // Log in to Docker Hub
                         bat 'docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%'
-                        
-                        // Tag the Docker image for pushing
-                        bat "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKER_REPO}:${IMAGE_TAG}"
-                        
-                        // Push the Docker image
-                        bat "docker push ${DOCKER_REPO}:${IMAGE_TAG}"
+
+                        // Tagging the image properly for Docker Hub
+                        bat 'docker tag wb01:latest %DOCKER_USERNAME%/wb01:latest'
+
+                        // Pushing the tagged image
+                        bat 'docker push %DOCKER_USERNAME%/wb01:latest'
                     }
                 }
             }
@@ -76,11 +45,8 @@ pipeline {
         stage('Deploy to Minikube') {
             steps {
                 script {
-                    // Update deployment image and apply the new configuration
-                    bat """
-                    kubectl set image deployment/wb01-deployment wb01-container=${DOCKER_REPO}:${IMAGE_TAG} --record
-                    kubectl rollout status deployment/wb01-deployment
-                    """
+                    // Apply the Kubernetes deployment
+                    bat 'kubectl apply -f deployment.yaml'
                 }
             }
         }
@@ -90,12 +56,6 @@ pipeline {
         always {
             echo 'Cleaning up workspace...'
             cleanWs()
-        }
-        failure {
-            echo 'Build failed, consider rolling back if necessary'
-        }
-        success {
-            echo "Deployment of version ${IMAGE_TAG} successful."
         }
     }
 }
