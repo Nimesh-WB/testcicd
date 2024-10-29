@@ -74,4 +74,24 @@ pipeline {
                 script {
                     // Update deployment image and apply the new configuration
                     bat """
-                    kubectl set image 
+                    kubectl set image deployment/wb01-deployment wb01-container=${DOCKER_REPO}:${IMAGE_TAG} --record
+                    kubectl rollout status deployment/wb01-deployment
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs()
+        }
+        failure {
+            echo 'Build failed, consider rolling back if necessary'
+        }
+        success {
+            echo "Deployment of version ${IMAGE_TAG} successful."
+        }
+    }
+}
