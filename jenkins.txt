@@ -25,7 +25,7 @@ pipeline {
                     writeFile file: 'VERSION.txt', text: "${IMAGE_TAG}"
                     
                     // Commit and push the updated VERSION.txt to GitHub
-                    sh '''
+                    bat '''
                     git config user.email "nimesh.jethva@wonderbiz.in"
                     git config user.name "Nimesh-WB"
                     git add VERSION.txt
