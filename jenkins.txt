@@ -24,17 +24,21 @@ pipeline {
                     // Update VERSION.txt with the current version number
                     writeFile file: 'VERSION.txt', text: "${IMAGE_TAG}"
                     
-                    // Commit and push the updated VERSION.txt to GitHub
-                    bat '''
-                    git config user.email "nimesh.jethva@wonderbiz.in"
-                    git config user.name "Nimesh-WB"
-                    git add VERSION.txt
-                    git commit -m "Update version to ${IMAGE_TAG}"
-                    git push origin master
-                    '''
+                    // Use Jenkins credentials for Git push
+                    withCredentials([usernamePassword(credentialsId: 'github-pat', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        sh '''
+                        git config user.email "nimesh.jethva@wonderbiz.in"
+                        git config user.name "Nimesh-WB"
+                        git add VERSION.txt
+                        git commit -m "Update version to ${IMAGE_TAG}"
+                        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Nimesh-WB/testcicd.git
+                        git push origin master
+                        '''
+                    }
                 }
             }
         }
+
 
         stage('Build and Push Docker Image') {
             steps {
